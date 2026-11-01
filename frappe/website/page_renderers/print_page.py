@@ -10,10 +10,12 @@ class PrintPage(TemplatePage):
 
 	def can_render(self):
 		parts = self.path.split("/", 1)
-		if len(parts) != 2 or not frappe.db.exists("DocType", parts[0], True):
+		if len(parts) != 2:
 			return False
-
-		return True
+		# Exactly the DocType's name: the lookup ignores case but importing its
+		# controller does not, so "/dashboard/.env" raised ImportError and
+		# answered 500 instead of 404 (Floreer framework#294).
+		return frappe.db.get_value("DocType", parts[0], "name", cache=True) == parts[0]
 
 	def render(self):
 		parts = self.path.split("/", 1)
